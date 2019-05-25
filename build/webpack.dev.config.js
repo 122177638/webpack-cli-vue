@@ -1,19 +1,31 @@
 const path = require("path");
-const webpack = require('webpack');
 const merge = require('webpack-merge');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
-
+var notifier = require('node-notifier');
+const utils = require('./webpack.utils')
 const BASE_CONFIG = require('./webpack.base.config');
 
+
+// 获取本机ip地址
+function getIPAdress() {
+  var interfaces = require('os').networkInterfaces();
+  for (var devName in interfaces) {
+    var iface = interfaces[devName];
+    for (var i = 0; i < iface.length; i++) {
+      var alias = iface[i];
+      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+        return alias.address;
+      }
+    }
+  }
+}
 module.exports = (env, argv) => {
 
   const DEVELOPMENT_CONFIG = {
     mode: "development",
     optimization: {
-      runtimeChunk: {
-        name: "manifest"
-      },
+      runtimeChunk: 'single',
       splitChunks: {
         cacheGroups: {
           vendor: {
@@ -26,7 +38,6 @@ module.exports = (env, argv) => {
       nodeEnv: 'development', // 设置process.env.NODE_ENV
     },
     plugins: [
-      new webpack.HotModuleReplacementPlugin(),
       // 配置打完完成输出配置
       new HtmlWebpackPlugin({
         filename: "index.html",
@@ -35,8 +46,20 @@ module.exports = (env, argv) => {
       }),
       new FriendlyErrorsPlugin({
         compilationSuccessInfo: {
-          messages: ['You application is running here http://localhost:****'],
+          messages: [`You application is running here http://localhost:****`, 'You application is running here http://192.168.1.1:8080'],
           notes: ['Some additionnal notes to be displayed unpon successful compilation']
+        },
+        onErrors: (severity, errors) => {
+          if (severity !== 'error') {
+            return;
+          }
+          const error = errors[0];
+          notifier.notify({
+            title: "Webpack error",
+            message: severity + ': ' + error.name,
+            subtitle: error.file || '',
+            icon: ICON
+          });
         }
       })
     ],
@@ -45,8 +68,10 @@ module.exports = (env, argv) => {
       open: true,
       historyApiFallback: true,
       hot: true,
+      port: 8080,
+      host: "0.0.0.0",
+      useLocalIp: true,
       clientLogLevel: 'warning',
-      inline: true,
       overlay: {
         warnings: true,
         errors: true

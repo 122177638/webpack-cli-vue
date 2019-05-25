@@ -2,7 +2,9 @@ import './common/css/base.css'
 import './common/css/mixin.css'
 import './common/css/font-awesome.min.css'
 import html5Icon from "./assets/images/html5.jpg"
-const utils = import( /* webpackChunkName:"utils" */ './common/js/utils.js')
+import {
+  getName
+} from "./common/js/utils.js"
 
 console.log('当前环境' + process.env.NODE_ENV)
 document.write('Hello webpack!')
@@ -35,10 +37,20 @@ div02.className = "fa fa-html5 fa-5x";
 div02.style.color = "red";
 document.body.appendChild(div02)
 
+// import引入方法调用
+const div03 = document.createElement('i');
+div03.className = "test-Hot";
+div03.innerHTML = getName();
+document.body.appendChild(div03)
+
 // 动态导入
-utils.then((result) => {
-  console.log(result.getName())
-})
+// import( /* webpackChunkName:"utils" */ './common/js/utils.js').then((res) => {
+//   const div03 = document.createElement('i');
+//   div03.className = "test-Hot";
+//   div03.innerHTML = res.getName();
+//   document.body.appendChild(div03)
+// })
+
 
 var array = [1, 2, 3, 4, 5, 6];
 array.includes(function (item) {
@@ -54,7 +66,11 @@ Anles.time = 132;
 
 Array.from(new Set([1, 2, 4, 3]))
 
-new Promise((resolve, reject) => {
-  console.log(resolve)
-  console.log(reject)
-})
+
+// 模块热替换
+if (module.hot) {
+  module.hot.accept('./common/js/utils.js', function () {
+    console.log('utils文件改变了，我要更新getName方法')
+    document.querySelector('.test-Hot').innerHTML = getName();
+  })
+}

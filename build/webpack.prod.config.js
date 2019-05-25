@@ -1,15 +1,14 @@
-const path = require("path");
-const webpack = require('webpack');
 const merge = require('webpack-merge');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyPlugin = require('copy-webpack-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
+
 
 const BASE_CONFIG = require('./webpack.base.config');
 
 module.exports = (env, argv) => {
-  
   const PRODUCTION_CONFIG = {
     mode: "production",
     optimization: {
@@ -44,17 +43,20 @@ module.exports = (env, argv) => {
         // excludeChunks: ["test.js"], // script标签不引入列表
         chunksSortMode: "auto", // script排序方式
         hash: false, // 给文件添加hash
+        showErrors: false, // 错误详细信息
         cache: true, // 默认是true的，表示内容变化的时候生成一个新的文件。
         minify: { // 将html-minifier的选项作为对象来缩小输出
-          removeAttributeQuotes: false, // 是否移除属性的引号
-          removeComments: false, // 是否清理html的注释
-          collapseWhitespace: false, // 是否清理html的空格、换行符
+          removeAttributeQuotes: true, // 是否移除属性的引号
+          removeComments: true, // 是否清理html的注释
+          collapseWhitespace: true, // 是否清理html的空格、换行符
           minifyCSS: false, // 是否压缩html内的样式
           minifyJS: false, // 是否压缩js内的样式
           removeEmptyElements: false, // 是否清理内容为空的元素
           caseSensitive: false, // 是否区分大小写的方式处理自定义标签内的属性。
-          removeScriptTypeAttributes: false, // 是否去除script标签中的type属性
-          removeStyleLinkTypeAttributes: false, // 是否去掉style和link标签的type属性。
+          removeRedundantAttributes: true,
+          useShortDoctype: true,
+          removeScriptTypeAttributes: true, // 是否去除script标签中的type属性
+          removeStyleLinkTypeAttributes: true, // 是否去掉style和link标签的type属性。
         },
         xhtml: true, // 如果true将link标记渲染为自闭（兼容XHTML）
         // 插入meta标签
@@ -66,8 +68,15 @@ module.exports = (env, argv) => {
         // 分离css
         filename: "./public/css/[name].[contenthash:8].css",
         chunkFilename: "./public/css/[name].[contenthash:8].css",
+      }),
+      // 添加serviceworker
+      new WorkboxPlugin.GenerateSW({
+        clientsClaim: true,
+        skipWaiting: true
       })
-    ]
+    ],
+    stats: { children: false } 
+    // Entrypoint undefined = index.html https://github.com/jantimon/html-webpack-plugin/issues/895
   };
 
   return merge(BASE_CONFIG(env, argv), PRODUCTION_CONFIG)

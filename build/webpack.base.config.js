@@ -8,7 +8,7 @@ module.exports = (env, argv) => {
   // BASE_CONFIG 公用配置
   const BASE_CONFIG = {
     entry: {
-      index: "./src/main.js"
+      app: "./src/main.js"
     },
     output: {
       filename: IS_NODE_PROD ? "./public/js/[name].[chunkhash:8].js" : "./public/js/[name].js",
@@ -24,7 +24,7 @@ module.exports = (env, argv) => {
         {
           test: /\.css$/,
           use: [{
-              loader: IS_NODE_PROD ? MiniCssExtractPlugin.loader+'?publicPath=../../' : "style-loader"
+              loader: IS_NODE_PROD ? MiniCssExtractPlugin.loader + '?publicPath=../../' : "style-loader"
             },
             {
               loader: "css-loader"
@@ -47,7 +47,7 @@ module.exports = (env, argv) => {
               options: {
                 limit: 1, //表示低于50000字节（50K）的图片会以 base64编码
                 outputPath: "./public/img", // 输出的路径
-                name: "[name].[hash:8].[ext]", // 输出的文件名
+                name: IS_NODE_PROD ? "[name].[hash:8].[ext]" : "[name].[ext]", // 输出的文件名
               }
             },
             { // 图片压缩(保真) https://www.npmjs.com/package/image-webpack-loader#libpng-issues
@@ -65,12 +65,17 @@ module.exports = (env, argv) => {
             loader: "file-loader",
             options: {
               outputPath: "./public/fonts", // 输出的路径
-              name: "[name].[hash:8].[ext]" // 输出的文件名
+              name: IS_NODE_PROD ? "[name].[hash:8].[ext]" : "[name].[ext]" // 输出的文件名
             }
           }]
         }
       ]
     },
+    resolve: {
+      alias: {
+        Utilities: path.resolve(__dirname, '../src')
+      }
+    }
   }
 
   return BASE_CONFIG;
