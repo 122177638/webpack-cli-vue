@@ -1,37 +1,39 @@
+const path = require('path');
+// 合并插件
 const merge = require('webpack-merge');
+// 构建文件index输出插件
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+// 清除原文件插件
 const CleanWebpackPlugin = require("clean-webpack-plugin");
+// css分离插件
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+// copy插件
 const CopyPlugin = require('copy-webpack-plugin');
+// serviceWorker插件
 const WorkboxPlugin = require('workbox-webpack-plugin');
-
-
+// 配置参数
+const config = require('./config')
+// webpack构建方法
+const utils = require('./utils')
+//  公用配置文件
 const BASE_CONFIG = require('./webpack.base.config');
 
 module.exports = (env, argv) => {
+
   const PRODUCTION_CONFIG = {
     mode: "production",
     optimization: {
-      runtimeChunk: 'single',
-      splitChunks: {
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            filename: './public/js/vendors.[contenthash:8].js',
-            chunks: 'all'
-          }
-        }
-      },
       nodeEnv: 'production', // 设置process.env.NODE_ENV
     },
     plugins: [
-      // 清除打包文件
+      // 清除构建文件
       new CleanWebpackPlugin(),
+      // 拷贝public静态文件
       new CopyPlugin([{
         from: './public',
         to: './'
       }]),
-      // 配置打完完成输出配置
+      // 输出index.html配置
       new HtmlWebpackPlugin({
         title: "webpack-app", // title(只有在使用默认模板时有效)
         filename: "index.html", // 模板名字
@@ -61,13 +63,13 @@ module.exports = (env, argv) => {
         xhtml: true, // 如果true将link标记渲染为自闭（兼容XHTML）
         // 插入meta标签
         meta: {
-          viewport: "width=device-width, initial-scale=1, shrink-to-fit=no"
+          Author: "Anles"
         },
       }),
       new MiniCssExtractPlugin({
         // 分离css
-        filename: "./public/css/[name].[contenthash:8].css",
-        chunkFilename: "./public/css/[name].[contenthash:8].css",
+        filename: utils.assetsPath("css/[name].[contenthash:8].css"),
+        chunkFilename: utils.assetsPath("css/[name].[contenthash:8].css"),
       }),
       // 添加serviceworker
       new WorkboxPlugin.GenerateSW({
@@ -75,9 +77,11 @@ module.exports = (env, argv) => {
         skipWaiting: true
       })
     ],
-    stats: { children: false } 
+    stats: {
+      children: false // 关闭错误提示信息
+    }
     // Entrypoint undefined = index.html https://github.com/jantimon/html-webpack-plugin/issues/895
   };
-
+  // 合并输出
   return merge(BASE_CONFIG(env, argv), PRODUCTION_CONFIG)
 }

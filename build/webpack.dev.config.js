@@ -1,53 +1,42 @@
 const path = require("path");
+// 合并插件
 const merge = require('webpack-merge');
+// 构建文件index输出插件
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+// 处理webpack提示信息输出
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
-var notifier = require('node-notifier');
-const utils = require('./webpack.utils')
+// 控制台错误提示处理
+const notifier = require('node-notifier');
+// 控制台颜色输出
+const colors = require('colors');
+// 配置参数
+const config = require('./config');
+// webpack构建方法
+const utils = require('./utils')
+// 公用配置文件
 const BASE_CONFIG = require('./webpack.base.config');
 
-
-// 获取本机ip地址
-function getIPAdress() {
-  var interfaces = require('os').networkInterfaces();
-  for (var devName in interfaces) {
-    var iface = interfaces[devName];
-    for (var i = 0; i < iface.length; i++) {
-      var alias = iface[i];
-      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-        return alias.address;
-      }
-    }
-  }
-}
 module.exports = (env, argv) => {
 
   const DEVELOPMENT_CONFIG = {
     mode: "development",
     optimization: {
-      runtimeChunk: 'single',
-      splitChunks: {
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            filename: './public/js/vendors.[contenthash:8].js',
-            chunks: 'all'
-          }
-        }
-      },
       nodeEnv: 'development', // 设置process.env.NODE_ENV
     },
     plugins: [
-      // 配置打完完成输出配置
+      // 输出index.html配置
       new HtmlWebpackPlugin({
         filename: "index.html",
         template: "./public/index.html",
         inject: true
       }),
+      // 处理webpack提示信息输出
       new FriendlyErrorsPlugin({
         compilationSuccessInfo: {
-          messages: [`You application is running here http://localhost:****`, 'You application is running here http://192.168.1.1:8080'],
-          notes: ['Some additionnal notes to be displayed unpon successful compilation']
+          messages: [
+            `You application is running here ${colors.cyan('http://localhost:'+ (config.devServer.port || 8080))}`
+          ],
+          notes: [`Or use the network to run ${colors.cyan('http://'+utils.getIPAdress()+':'+(config.devServer.port || 8080))}`]
         },
         onErrors: (severity, errors) => {
           if (severity !== 'error') {
@@ -63,13 +52,11 @@ module.exports = (env, argv) => {
         }
       })
     ],
-    devServer: {
-      contentBase: path.resolve(__dirname, 'dist/'),
+    devServer: Object.assign({
       open: true,
       historyApiFallback: true,
       hot: true,
       port: 8080,
-      host: "0.0.0.0",
       useLocalIp: true,
       clientLogLevel: 'warning',
       overlay: {
@@ -78,8 +65,10 @@ module.exports = (env, argv) => {
       },
       // 显示 webpack 构建进度
       progress: true,
-      quiet: true
-    }
+      quiet: true,
+    }, config.devServer, {
+      host: '0.0.0.0' // 保持两种运行方法
+    })
   };
 
   return merge(BASE_CONFIG(env, argv), DEVELOPMENT_CONFIG)
