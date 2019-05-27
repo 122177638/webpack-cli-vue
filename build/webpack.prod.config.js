@@ -1,6 +1,6 @@
-const path = require('path');
+const path = require("path");
 // 合并插件
-const merge = require('webpack-merge');
+const merge = require("webpack-merge");
 // 构建文件index输出插件
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 // 清除原文件插件
@@ -8,30 +8,30 @@ const CleanWebpackPlugin = require("clean-webpack-plugin");
 // css分离插件
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // copy插件
-const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 // serviceWorker插件
-const WorkboxPlugin = require('workbox-webpack-plugin');
+const WorkboxPlugin = require("workbox-webpack-plugin");
 // 配置参数
-const config = require('./config')
+const config = require("./config")
 // webpack构建方法
-const utils = require('./utils')
+const utils = require("./utils")
 //  公用配置文件
-const BASE_CONFIG = require('./webpack.base.config');
+const BASE_CONFIG = require("./webpack.base.config");
 
 module.exports = (env, argv) => {
 
   const PRODUCTION_CONFIG = {
     mode: "production",
     optimization: {
-      nodeEnv: 'production', // 设置process.env.NODE_ENV
+      nodeEnv: "production", // 设置process.env.NODE_ENV
     },
     plugins: [
       // 清除构建文件
       new CleanWebpackPlugin(),
       // 拷贝public静态文件
       new CopyPlugin([{
-        from: './public',
-        to: './'
+        from: "./public",
+        to: "./"
       }]),
       // 输出index.html配置
       new HtmlWebpackPlugin({
@@ -39,7 +39,7 @@ module.exports = (env, argv) => {
         filename: "index.html", // 模板名字
         template: "./public/index.html", // 模板路径(title无效)
         templateParameters: true, // 允许覆盖模板中使用的参数
-        inject: 'head', // script插入位置
+        inject: true, // script插入位置
         favicon: "./public/favicon.ico", // 图标icon
         // chunks: ["index.js"], // script标签引入列表
         // excludeChunks: ["test.js"], // script标签不引入列表

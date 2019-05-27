@@ -1,8 +1,9 @@
 const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const package = require('../package.json');
-const config = require('./config');
-const utils = require('./utils')
+const package = require("../package.json");
+const config = require("./config");
+const VueLoaderPlugin = require("vue-loader/lib/plugin")
+const utils = require("./utils")
 
 
 module.exports = (env, argv) => {
@@ -20,28 +21,35 @@ module.exports = (env, argv) => {
     },
     optimization: {
       // 提取runtimeChunk
-      runtimeChunk: 'single',
+      runtimeChunk: "single",
       splitChunks: {
         cacheGroups: {
           // 提取vendor长效缓存
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             filename: utils.assetsPath("js/vendors.[contenthash:8].js"),
-            chunks: 'all'
+            chunks: "all"
           }
         }
       }
     },
     module: {
-      rules: [{
+      rules: [
+
+        {
+          test: /\.vue$/,
+          loader: "vue-loader"
+        },
+
+        {
           test: /\.js(x)?$/,
-          loader: 'babel-loader',
+          loader: "babel-loader",
           exclude: /node_modules/
         },
         {
-          test: /\.css$/,
+          test: /(\.less)|(.css)$/,
           use: [{
-              loader: IS_NODE_PROD ? MiniCssExtractPlugin.loader + '?publicPath=' + config.minicssPublicPath : "style-loader"
+              loader: IS_NODE_PROD ? MiniCssExtractPlugin.loader + "?publicPath=" + config.minicssPublicPath : "vue-style-loader"
             },
             {
               loader: "css-loader"
@@ -50,10 +58,12 @@ module.exports = (env, argv) => {
               loader: "postcss-loader",
               options: {
                 plugins: [
-                  require('autoprefixer')(package.postcss.plugins.autoprefixer), // 自动添加浏览器前缀
-                  require('cssnano')(), // 合并相同css
+                  require("autoprefixer")(package.postcss.plugins.autoprefixer), // 自动添加浏览器前缀
+                  require("cssnano")(), // 合并相同css
                 ]
               }
+            }, {
+              loader: "less-loader"
             }
           ]
         },
@@ -68,7 +78,7 @@ module.exports = (env, argv) => {
               }
             },
             { // 图片压缩(保真) https://www.npmjs.com/package/image-webpack-loader#libpng-issues
-              loader: 'image-webpack-loader',
+              loader: "image-webpack-loader",
               options: {
                 bypassOnDebug: true, // webpack@1.x
                 disable: true, // webpack@2.x and newer
@@ -88,9 +98,12 @@ module.exports = (env, argv) => {
         }
       ]
     },
+    plugins: [
+      new VueLoaderPlugin()
+    ],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, '../src')
+        "@": path.resolve(__dirname, "../src")
       }
     }
   }
